@@ -19,64 +19,58 @@
  * needs please refer to http://www.magento.com for more information.
  *
  * @category    Mage
- * @package     Mage_HTTP
+ * @package     Mage_Connect
  * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
 /**
- * Factory for HTTP client classes
+ * Class for retrieve adapter to work with remote REST interface
  *
  * @category    Mage
  * @package     Mage_Connect
  * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Mage_HTTP_Client
+class Mage_Connect_Rest_Builder
 {
     /**
-     * Disallow to instantiate - pvt constructor
+     * Rest adapter factory
+     *
+     * @var Mage_Connect_Rest_Factory
      */
-    private function __construct()
-    {
+    protected static $_adapterFactory;
 
+    /**
+     * Retrieve adapter factory
+     *
+     * @return Mage_Connect_Rest_Factory
+     */
+    protected static function _getAdapterFactory()
+    {
+        if (self::$_adapterFactory === null) {
+            self::$_adapterFactory = new Mage_Connect_Rest_Factory();
+        }
+        return self::$_adapterFactory;
     }
 
     /**
-     * Factory for HTTP client
+     * Define rest adapter factory
      *
-     * @static
-     * @throws Exception
-     * @param string|bool $frontend  'curl'/'socket' or false for auto-detect
-     * @return Mage_HTTP_IClient
+     * @param Mage_Connect_Rest_Factory $adapterFactory
      */
-    public static function getInstance($frontend = false)
+    public static function setAdapterFactory(Mage_Connect_Rest_Factory $adapterFactory)
     {
-        if (false === $frontend) {
-            $frontend = self::detectFrontend();
-        }
-        if (false === $frontend) {
-            throw new Exception("Cannot find frontend automatically, set it manually");
-        }
-
-        $class = __CLASS__ . "_" . str_replace(' ', DIRECTORY_SEPARATOR, ucwords(str_replace('_', ' ', $frontend)));
-        $obj = new $class();
-        return $obj;
+        self::$_adapterFactory = $adapterFactory;
     }
 
     /**
-     * Detects frontend type.
-     * Priority is given to CURL
+     * Retrieve rest adapter
      *
-     * @return string/bool
+     * @param string $protocol
+     * @return Mage_Connect_Rest
      */
-    protected static function detectFrontend()
+    public static function getAdapter($protocol = "https")
     {
-       if (function_exists("curl_init")) {
-              return "curl";
-       }
-       if (function_exists("fsockopen")) {
-              return "socket";
-       }
-       return false;
+        return self::_getAdapterFactory()->getAdapter($protocol);
     }
 }
